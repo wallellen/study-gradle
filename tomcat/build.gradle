@@ -1,0 +1,98 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'war'
+apply plugin: 'com.bmuschko.tomcat'
+
+// Define the JDK version for source and target
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+/**
+ * Config the idea plugin
+ */
+idea {
+    project {
+        jdkName = '1.8'
+        languageLevel = '1.8'
+    }
+}
+
+/**
+ * Configure tomcat plugin
+ */
+tomcat {
+    httpPort = 8080
+    stopPort = 8081
+    // httpsPort = 8091
+    // enableSSL = true
+}
+
+/**
+ * Configure tomcat runner
+ */
+tomcatRun {
+    contextPath = ''
+    URIEncoding = 'UTF-8'
+    reloadable = 'true'
+}
+
+/**
+ * Define the repositories and dependencies use in current script
+ */
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.bmuschko:gradle-tomcat-plugin:latest.release'
+    }
+}
+
+/**
+ * Define the repositories for current project
+ */
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+/**
+ * Set the encode of java source
+ */
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+/**
+ * Define the dependencies for current project
+ */
+dependencies {
+    compile "javax.servlet:javax.servlet-api:latest.release",
+            "javax.servlet.jsp:jsp-api:latest.release"
+    testCompile 'junit:junit:latest.release',
+            'org.hamcrest:hamcrest-all:latest.release'
+
+    tomcat "org.apache.tomcat.embed:tomcat-embed-core:latest.release",
+            "org.apache.tomcat.embed:tomcat-embed-logging-juli:latest.release",
+            "jstl:jstl:latest.release"
+    tomcat("org.apache.tomcat.embed:tomcat-embed-jasper:latest.release") {
+        exclude group: 'org.eclipse.jdt.core.compiler', module: 'ecj'
+    }
+}
+
+
+
+/**
+ * Pack the war package, to deployed the project to the server (like tomcat)
+ */
+task packWar(type: War, dependsOn: [war]) {
+    archiveName = "tomcat.war"
+    destinationDir = file('out')
+
+    manifest {
+        attributes(
+                'Min-Java-Version': '1.8.0',
+        )
+    }
+}

@@ -1,0 +1,145 @@
+import org.akhikhl.gretty.GrettyPlugin
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'war'
+apply plugin: GrettyPlugin
+
+// Define the JDK version for source and target
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+/**
+ * Define the version of current project
+ */
+ext {
+    buildCount = System.getenv("BUILD_COUNT") ?: '0'
+    projectVersion = "0.0.${buildCount}"
+}
+
+/**
+ * Define the repositories and dependencies use in current script
+ */
+buildscript {
+    repositories {
+        jcenter()
+    }
+    // Add gretty package
+    dependencies {
+        classpath 'org.akhikhl.gretty:gretty:latest.release'
+    }
+}
+
+/**
+ * Config the idea plugin
+ */
+idea {
+    project {
+        jdkName = '1.8'
+        languageLevel = '1.8'
+    }
+}
+
+/**
+ * Config the gretty plugin
+ */
+gretty {
+    servletContainer = 'jetty9'
+    contextPath = ''
+    scanInterval = 1    // Set the interview of auto deployment
+}
+
+/**
+ * Define the repositories for current project
+ */
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+/**
+ * Set the encode of java source
+ */
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+/**
+ * Set the encode of java source
+ */
+configurations {
+    boot
+}
+
+/**
+ * Set boot folder as source folder
+ */
+sourceSets {
+    boot {
+        java {
+            srcDir 'src/boot/java'
+        }
+    }
+}
+
+/**
+ * Config the source set
+ */
+sourceSets {
+    main {
+        output.resourcesDir = output.classesDir
+    }
+}
+
+/**
+ * Define the dependencies for current project
+ */
+dependencies {
+    compile "javax.servlet:javax.servlet-api:latest.release",
+            "javax.servlet.jsp:jsp-api:latest.release",
+            "jstl:jstl:latest.release"
+    bootCompile "org.eclipse.jetty:jetty-webapp:latest.release",
+            "org.eclipse.jetty:jetty-servlet:latest.release",
+            "org.eclipse.jetty:jetty-jsp:latest.release",
+            "org.eclipse.jetty:jetty-annotations:latest.release",
+            "org.eclipse.jetty:jetty-jmx:latest.release",
+            "org.eclipse.jetty:jetty-jndi:latest.release",
+            "org.eclipse.jetty:jetty-io:latest.release",
+            "org.eclipse.jetty:jetty-server:latest.release",
+            "org.eclipse.jetty.websocket:websocket-server:latest.release"
+    testCompile 'junit:junit:latest.release',
+            'org.hamcrest:hamcrest-all:latest.release'
+}
+
+/**
+ * Pack the jar package, to run the website standalone
+ */
+task packJar(type: Jar, dependsOn: [war, bootClasses]) {
+    archiveName = "jetty.jar"
+    destinationDir = file('out')
+
+    from zipTree(war.archivePath)
+    from fileTree(dir: sourceSets.boot.output.classesDir, include: '**/*.class')
+    from configurations.bootCompile.collect { zipTree(it) }
+
+    manifest {
+        attributes(
+                'Main-Class': 'edu.alvin.jetty.boot.Main',
+                'Min-Java-Version': '1.8.0',
+        )
+    }
+}
+
+/**
+ * Pack the war package, to deployed the project to the server (like tomcat)
+ */
+task packWar(type: War, dependsOn: [war]) {
+    archiveName = "jetty.war"
+    destinationDir = file('out')
+
+    manifest {
+        attributes(
+                'Min-Java-Version': '1.8.0',
+        )
+    }
+}

@@ -1,0 +1,239 @@
+apply plugin: 'java'
+
+def newline(n = 1) {
+	n.times {
+		println ''
+	}
+}
+
+// Define variables
+def var = 100
+println "The var var1=${var}"
+newline()
+
+///////////////////////////////////////////////////////////////////////////
+
+// Define functions
+def func(a, b = 0) {	// parameter b has default value
+	if (a > b) {
+		a - b
+	} else {
+		b - a
+	}
+}
+println func(7, 9)
+println func(9, 7)
+
+// Function with uncertain parameters
+def funcWithUncertainArgs(int a, int[] b) {
+	if (b.length == 0) {
+		return null
+	}
+	b.inject(a) { sum, elem -> sum += elem }
+}
+println funcWithUncertainArgs(1, 2, 3, 4)
+
+// Function with map argument
+def funcWithMapArgs(map, a, b) {
+	[a: map.a + a, b: map.b + b]
+}
+println funcWithMapArgs(a:100, b:200, 10, 20)
+
+// Function with string parameter
+def showValue(a, b = null) {
+	if (b) {
+		a = a + ", " + b
+	}
+	println a
+}
+showValue 'hello'
+showValue 100, 200
+newline()
+
+///////////////////////////////////////////////////////////////////////////
+
+// Define a closure
+def closure = {a, b -> a + b }
+println closure(10, 20)
+
+// Function with closure argument
+def funcWithClosure(list, closure) {
+	def result = []
+	list.each {
+		def sub = closure(it)
+		if (sub) {
+			result <<= sub
+		}
+	}
+	return result
+}
+println funcWithClosure([*1..8]) { it % 2 == 0 ? it : null }
+newline()
+
+///////////////////////////////////////////////////////////////////////////
+
+// Define  class
+class TestClass {
+	private def a, b, c
+	public TestClass(a, b, c) {		// Constructor
+		this.a = a
+		this.b = b
+		this.c = c
+	}
+	public def setA(a) {	// Override the default get method
+		this.a = a * 10
+	}
+	public def show() {
+		println "The properites are: a=${a}, b=${b}, c=${c}"
+	}
+}
+def obj = new TestClass(1, 2, 3)
+obj.show()
+obj.a = 1 		// Equivalent to call setA method
+obj.show()
+newline()
+
+///////////////////////////////////////////////////////////////////////////
+
+// List
+def list = [1, 2, 3, 4, 5]
+println list
+
+// List operations
+println list[0]		// Get element
+println list[-1]	// Get element
+println list[1..3]	// Get sublist by range of index(1 to 3)
+println list[1..<3]	// Get sublist by range of index(1 to 2)
+
+list = [1, 2, 3]
+list <<= 4		// Add a new element
+println list
+list += [5, 6]	// Merge to lists
+println list
+list -= [1, 2]	// Remove elements in other list
+println list
+
+list = [2, 3]
+list.add(4)		// Add a new element
+println list
+list.add(0, 1)	// Insert a new element
+println list
+list.addAll(0, 1, 2, 3, 4)	// Add elements
+println list
+if (list.remove(0)) {	// Delete element by placement
+	println list
+}
+if (list.remove((Object)2)) {		// Delete first element by value, return 'true' if success
+	println list
+}
+if (list.removeAll((Object)3)) {	// Delete all elements by value if one element to be removed at least
+	println list
+}
+list.removeRange(1, 3)	// Delete elements that indexes in the range
+println list
+list.clear()	// Clear the list
+println list
+
+list = [1, 2, 3, 4, 5]
+println list.getAt(0)     // Get element by index
+println list.getAt(-1)    // Get element by index
+println list.getAt(1..2)  // Get elements by range of index
+println list.getAt([1, 3, 5])  // Get elements which the index in the specified list
+
+list = [1, 2, 3, 4, 5]
+println list.intersect([1, 3, 5, 7])	// Get elements witch in two list (intersection)
+println list.plus([1, 2])    // Merge to list
+println list.minus([2, 5])   // Elements in list A and not in list B (difference set)
+println list.disjoint([6, 7, 8])    // Check the two lists if not have same elements
+if (list.retainAll([2, 5, 8])) {   // Keep the elements both in two lists
+	println list
+}
+
+
+list = [1, 2, 3, 3, 2, 1]
+println list.indexOf(2)     // Find the elements (from beginning)
+println list.lastIndexOf(2) // Find the elements (from tail)
+println list.contains(2)    // If the list contains certain element
+println list.containsAll([2, 3, 4])    // If the list contains certain list
+println Collections.indexOfSubList(list, [2, 3])      // Find the sublist
+println Collections.lastIndexOfSubList(list, [2, 3])  // Find the sublist
+println Collections.binarySearch(list.unique().sort(), 3) // Binary search (sort first)
+Collections.replaceAll(list, 3, 5) // Replace the element
+println list
+
+list = [1, 2, 3, 4, [5, 6]]
+println list.flatten()		// Flatten the list
+
+list = [2, 3, 1, 5, 4]
+println list.sort { e1, e2 ->   // Sort the list
+	e1 - e2
+}
+
+list = [1, 2, 3, 4]
+Collections.swap(list, 2, 3)  // Exchange two elements in list
+println list
+Collections.shuffle(list)    // Shuffle the elements in list
+println list
+Collections.rotate(list, 3)  // Rotate the list (move the elements before the certain index to tail)
+println list
+Collections.rotate(list, -3)  // Rotate the list (move the elements behind the certain index to head)
+println list
+println list.reverse()    // Reverse the list
+
+list = [1, 2, 2, 3, 3, 4, 5]
+println list.isEmpty()  // Check if list is empty
+println list.clone()    // Copy list to an new list
+println list.unique { e1, e2 ->    // Remove duplicate elements
+	e1 - e2
+}
+
+list = [1, 2, 3]
+list.each {   // Visit the each element
+	print "${it} "
+}
+newline()
+list.eachWithIndex { item, index ->    // Visit the each element
+	print "${index}.${item} "
+}
+newline()
+
+list = [4, 5, 6, 7]
+println list.any { 	// Get any element to meet the conditions
+	it > 5
+}
+println list.every {    // Get every elements to meet the conditions
+	it < 5
+}
+println list.grep {     // Get all elements to meet the conditions
+	it > 5
+}
+
+list = [1, 2, 3, 4, 5]
+println list.sum()    // Get the sum result
+println list.sum(100) // Get the sum result with parameter
+println list.sum {   // Call the closure for each element, and sum the result
+	it % 2 == 0 ? 0 : it
+}
+println list.max { e1, e2 ->   // Get the max value in list
+	e1 - e2
+}
+println list.min { e1, e2 ->   // Get min value in list
+	e2 - e1
+}
+println list.inject(1) { sum, item ->  // inject the value into each elements
+	sum + item
+}
+println list.collect {  // Call the closure for each element, and get the sum result of closures return
+	it * 2
+}
+
+list = [1, 2, 3, 4, 5, 6]
+println list.groupBy {   // Group the elements, return a map
+	it % 2
+}
+newline()
+
+// Define a Map
+def map = [a: 100, b: 200]
+println "The map is ${map}"
+newline()

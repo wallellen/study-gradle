@@ -1,0 +1,152 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'checkstyle'
+apply plugin: 'application'
+
+// Define the JDK version for source and target
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+/**
+ * Define the version of current project
+ */
+ext {
+    buildCount = System.getenv("BUILD_COUNT") ?: '0'
+    projectVersion = "0.0.${buildCount}"
+}
+
+/**
+ * Define the repositories and dependencies use in current script
+ */
+buildscript {
+    repositories {
+        jcenter()
+    }
+}
+
+/**
+ * Config the idea plugin
+ */
+idea {
+    // Define the JDK name and java language level for current project
+    project {
+        jdkName = '1.8'
+        languageLevel = '1.8'
+    }
+}
+
+/**
+ * Define the repositories for current project
+ */
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        output.resourcesDir = output.classesDir
+    }
+}
+
+/**
+ * Set the encode of java source
+ */
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+/**
+ * Define the dependencies for current project
+ */
+dependencies {
+    compile "org.apache.logging.log4j:log4j-core:2.+",
+            "org.apache.logging.log4j:log4j-slf4j-impl:2.+"
+            files()     // Add local jar lib files here
+    testCompile 'junit:junit:latest.release',
+            'org.hamcrest:hamcrest-all:latest.release'
+}
+
+/**
+ * Define the properties on test environment
+ */
+test {
+    systemProperties 'test-name': 'Alvin',
+            'test-key': '100'
+}
+
+// Define the jar output folder
+def destinationDirName = file('out')
+
+/**
+ * Define a task to create the archive jar file
+ */
+task copyLibs << {
+    copy {
+        from configurations.compile
+        into destinationDirName
+    }
+}
+
+task copyResources << {
+    copy {
+        from 'src/test/java'
+        include '**/*.json'
+        include '**/*.xml'
+        into sourceSets.test.output.classesDir
+    }
+}
+test.dependsOn copyResources
+
+/**
+ * Define a task to create the archive jar file
+ */
+task capsule(type: Jar, dependsOn: [build, copyLibs]) {
+    archiveName = "gradle-java.jar"         // The archive jar file name
+    mainClassName = 'edu.alvin.gradle.Main' // Define the class name witch with main method in
+    destinationDir = destinationDirName     // The archive jar file folder
+    from(sourceSets.main.runtimeClasspath)  // Include all files from folder 'build/classes/main'
+
+    manifest {
+        attributes 'Main-Class': mainClassName,
+                'Min-Java-Version': '1.8.0',
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' ')
+    }
+}
+
+/**
+ * Define a task to create the archive jar file, merge library jars with current jar file
+ */
+//task capsule(type: Jar, dependsOn: [build]) {
+//    archiveName = "gradle-java.jar"         // The archive jar file name
+//    mainClassName = 'edu.alvin.gradle.Main' // Define the class name witch with main method in
+//    destinationDir = destinationDirName     // The archive jar file folder
+//    from fileTree(dir: sourceSets.main.output.classesDir, include: '**/*.class')
+//    from configurations.compile.collect { zipTree(it) }
+//
+//    manifest {
+//        attributes 'Main-Class': mainClassName,
+//                'Min-Java-Version': '1.8.0'
+//    }
+//}
+
+/**
+ * Define a task to execute the project
+ */
+task execute(type: JavaExec) {
+    main = "edu.alvin.gradle.Main"
+    classpath = sourceSets.main.runtimeClasspath    // Set classpath for running
+    jvmArgs = applicationDefaultJvmArgs     // Set arguments of JVM
+    copy {
+        from 'src/main/java'
+        include '**/*.xml'
+        into sourceSets.main.output.classesDir
+    }
+}
+
+/**
+ * Define the style check config
+ */
+checkstyleTest {
+    configFile = file('./config/checkstyle/checkstyle.xml')
+}

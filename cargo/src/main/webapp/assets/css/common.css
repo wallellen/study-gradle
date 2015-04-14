@@ -1,0 +1,32 @@
+body {
+    font: 14px/1.5 'Microsoft Yahei', 'Monospaced'
+}
+
+a {
+    text-decoration: none;
+}
+
+.page-main {
+    width: 1000px;
+    margin: 10px auto;
+}
+
+.link-box a {
+    margin: 0 10px 0 0;
+}
+
+.link-box a:hover {
+    background: #bbb;
+    padding: 2px 3px;
+}
+
+.content-title {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center
+}
+
+.back-link {
+    text-align: right;
+    padding-right: 200px
+}

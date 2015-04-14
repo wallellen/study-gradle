@@ -1,0 +1,70 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'war'
+apply plugin: 'com.bmuschko.cargo'
+
+idea {
+    project {
+        jdkName = '1.8'
+        languageLevel = '1.8'
+    }
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.bmuschko:gradle-cargo-plugin:latest.release'
+    }
+}
+
+repositories {
+    jcenter()
+}
+
+cargo {
+    containerId = 'tomcat8x'
+    port = 8080
+
+    deployable {
+        context = ''
+    }
+
+//    remote {
+//        hostname = 'cloud.internal.it'
+//        username = 'superuser'
+//        password = 'secretpwd'
+//    }
+
+    local {
+        homeDir = file("D:/Work/Runtime/tomcat")
+        outputFile = file('build/output.log')
+        timeout = 60000
+
+        containerProperties {
+            property 'cargo.tomcat.ajp.port', 9099
+        }
+    }
+}
+
+ext {
+    buildNumber = System.getenv("GO_PIPELINE_COUNTER") ?: '0'
+}
+
+dependencies {
+    compile 'javax.servlet:javax.servlet-api:latest.release',
+            'org.eclipse.jdt.core.compiler:ecj:latest.release'
+    runtime 'javax.servlet:jstl:latest.release'
+    cargo "org.codehaus.cargo:cargo-core-uberjar:latest.release",
+            "org.codehaus.cargo:cargo-ant:latest.release"
+    testCompile 'junit:junit:latest.release'
+}
+
+war {
+    manifest {
+        attributes 'Provider': 'gradle',
+                'Implementation-Version': "0.0.${buildNumber}"
+    }
+}

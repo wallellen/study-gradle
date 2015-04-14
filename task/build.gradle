@@ -1,0 +1,121 @@
+println "Task test project"
+
+// Define a task, include 2 works
+task task1 {
+    doFirst {
+        println 'Task1-doFirst'
+    }
+    doLast {
+        println 'Task1-doLast'
+    }
+}
+
+
+// Define a task, include one work
+task task2 << {
+    println 'Task2-1'
+}
+// Add work into a existing task
+task2 << {
+    println 'Task2-2'
+}
+
+
+// The depends between tasks
+
+task base1 << {
+    println 'This is base1 task'
+}
+// Define a task depends on other existing task
+task depends1(dependsOn: 'base1') << {
+    println 'This is task depends on base1'
+}
+
+
+task base2 << {
+    println 'This is base2 task'
+}
+task depends2 << {
+    println 'This is task depends on base2'
+}
+// Make one task depends on other task
+depends2.dependsOn base2
+
+
+task base3 << {
+    println 'This is base3 task'
+}
+task depends3 << {
+    println 'This is task denpends on base3'
+}
+// Make the depends with closure
+depends3.dependsOn {
+    tasks.findAll { task->
+        task.name == 'base3'
+    }
+}
+
+
+// Create tasks dynamic
+3.times { num->
+    num++
+    task "dynamic1Task$num" << {
+        println 'This is dynamic task' + num
+    }
+}
+
+
+// Define the depends by dynamic tasks
+3.times { n->
+    def m = n + 1
+    task "dynamic2Task$m" << {
+        println 'This is tynamic task' + m
+    }
+}
+dynamic2Task3.dependsOn dynamic2Task1, dynamic2Task2
+
+ 
+task taskProperty1 << {
+    ext.value = "hello"   // The ext property
+}
+task taskShow1 << {
+    println taskProperty1.value
+}
+
+
+task taskProperty2 {
+    ext.value = 123
+}
+task taskShow2 << {
+    println taskProperty2.value
+}
+
+
+// Default task
+defaultTasks 'build', 'run'
+task build << {
+    println 'This is default build task'
+}
+task run << {
+    println 'This is default run task'
+}
+
+
+// Branch of task
+
+// Create one branch
+task distribution << {
+    println "The build version is $version"
+}
+// Create other branch and depends on first branch
+task release(dependsOn: distribution) << {
+    println 'This is release version'
+}
+// Define the branch task
+gradle.taskGraph.whenReady { taskGraph->
+    if (taskGraph.hasTask(release)) {
+        version = "1.0"
+    } else {
+        version = "1.0.SNAPSHOT"
+    }
+}
